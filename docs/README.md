@@ -27,7 +27,7 @@ Jenkins 虽然可以将 Jenkinsfile 脚本集中管理，但针对每个项目�
 - 以下步骤在 macOS 10.15 上测试通过，一些命令在 Windows 上可能没有。
 - registry.cn-huhehaote.aliyuncs.com/feng-566/ 旗下镜像均可公开访问，但是推送镜像需要认证。所以需要一个镜像仓库用于推送制品镜像，推荐阿里云镜像仓库注册账号即可免费使用。
 - 接收 github webhook 需要一个拥有公网 IP 的服务器。如果没有，可使用 pull 模式替代。
-- 出现问题请先查看[问题排查](#问题排查)
+- 出现问题请先查看 [问题排查](#问题排查)
 
 ### 创建 kind 本地集群
 
@@ -166,7 +166,7 @@ nc -v <your-remote-host> 9080
 ```
 
 #### debug webhook
-部署成功后参考 `测试 CICD` 中步骤进行测试。
+部署成功后参考 [测试 CICD](#测试-CICD) 中步骤进行测试。
 
 可通过查看 eventLister 日志进行 debug：
 ```sh
