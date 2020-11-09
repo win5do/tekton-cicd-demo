@@ -24,7 +24,7 @@ spec:
               storage: 1Gi
   params:
     - name: REPO
-      value: https://github.com/win5do/tekton-cicd-sample.git
+      value: https://github.com/win5do/tekton-cicd-demo.git
     - name: REVERSION
       value: master
     - name: IMAGE
