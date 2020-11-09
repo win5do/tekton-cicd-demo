@@ -3,9 +3,8 @@ package main
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	"os"
 	"strings"
 	"testing"
 )
@@ -47,19 +46,43 @@ metadata:
   generateName: git-cicd-
   namespace: tekton-pipelines
   labels:
-    name: git-pull
-spec:
+    name: poll-pull
+spec: {}
 `
 
-	config, err := clientcmd.BuildConfigFromFlags("", os.Getenv(clientcmd.RecommendedConfigPathEnvVar))
+	obj, err := yamlToUnstructured([]byte(pr))
 	require.NoError(t, err)
+
+	config := kConfigOrDie(false)
 	config.Impersonate = rest.ImpersonationConfig{
 		UserName: "system:serviceaccount:tekton-pipelines:tekton-poll-pull",
 	}
-	err = createPipelineRun(config, []byte(pr))
+
+	err = createPipelineRun(dynamic.NewForConfigOrDie(config), obj, 300)
 	if strings.Contains(err.Error(), "admission webhook") {
 		t.Logf("ignore err: %+v", err)
 		err = nil
 	}
+	require.NoError(t, err)
+}
+
+func TestCheckExistsPipelineRun(t *testing.T) {
+	pr := `
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: git-cicd-
+  namespace: tekton-pipelines
+  labels:
+    name: poll-pull
+spec: {}
+`
+
+	obj, err := yamlToUnstructured([]byte(pr))
+	require.NoError(t, err)
+
+	config := kConfigOrDie(false)
+
+	_, err = checkExistsPipelineRun(dynamic.NewForConfigOrDie(config), obj, 300)
 	require.NoError(t, err)
 }

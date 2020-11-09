@@ -58,7 +58,7 @@ make sync
 部署 pipeline、trigger、dashboard 三个组件。
 
 ```sh
-kc apply -f ./script/dst
+kc apply -f ./src/sync/dst
 ```
 
 #### 部署 demo app
@@ -108,7 +108,7 @@ kc apply -f ./manifests/resource
 手动执行 PipelineRun，测试 pipeline 流程。
 
 ```sh
-kc apply -f ./manifests/run/job/pipeline-run-demo.yaml
+kc apply -f ./manifests/test/pipeline-run-demo.yaml
 ```
 
 #### Tekton dashboard

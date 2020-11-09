@@ -13,7 +13,7 @@ spec:
           containers:
             - name: poll
               image: registry.cn-huhehaote.aliyuncs.com/feng-566/git-poll:v0.0.1
-              imagePullPolicy: Always
+              imagePullPolicy: IfNotPresent
               args:
                 - --repo=https://github.com/win5do/tekton-cicd-demo.git
                 - --username=$(username)

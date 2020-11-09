@@ -2,6 +2,8 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   name: demo
+  labels:
+    name: poll-pull
 spec:
   serviceAccountName: tekton-task
   pipelineRef:

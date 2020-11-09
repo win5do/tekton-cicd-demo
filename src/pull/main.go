@@ -14,9 +14,11 @@ import (
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"sigs.k8s.io/yaml"
 	"text/template"
@@ -57,7 +59,10 @@ func main() {
 	rootCmd.Flags().IntVar(&flagRange, "range", 120, "fetch time range, unit: seconds")
 	rootCmd.Flags().StringVar(&flagTemplate, "template", "", "PipelineRun template")
 
-	rootCmd.Execute()
+	err := rootCmd.Execute()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func run() error {
@@ -87,7 +92,7 @@ func run() error {
 		return errors2.WithStack(err)
 	}
 
-	err = createPipelineRun(nil, pr)
+	err = createPipelineRun(dynamic.NewForConfigOrDie(kConfigOrDie(true)), pr, flagRange)
 	if err != nil {
 		return errors2.WithStack(err)
 	}
@@ -173,45 +178,97 @@ func parseTemplate(path string) (*template.Template, error) {
 	return t, nil
 }
 
-func applyTemplate(t *template.Template, params map[string]string) ([]byte, error) {
+func applyTemplate(t *template.Template, params map[string]string) (*unstructured.Unstructured, error) {
 	buf := bytes.NewBuffer(nil)
 	err := t.Execute(buf, params)
 	if err != nil {
 		return nil, errors2.WithStack(err)
 	}
-	return buf.Bytes(), nil
+
+	obj, err := yamlToUnstructured(buf.Bytes())
+	if err != nil {
+		return nil, errors2.WithStack(err)
+	}
+
+	obj.SetLabels(labels.Merge(obj.GetLabels(), params))
+
+	return obj, nil
 }
 
-func createPipelineRun(config *rest.Config, pr []byte) error {
-	m := make(map[string]interface{})
-	err := yaml.Unmarshal(pr, &m)
-	if err != nil {
-		return errors2.WithStack(err)
-	}
-
-	obj := &unstructured.Unstructured{
-		Object: m,
-	}
-
-	if config == nil {
-		config, err = rest.InClusterConfig()
-		if err != nil {
-			return errors2.WithStack(err)
-		}
-	}
-	client := dynamic.NewForConfigOrDie(config)
-
-	log.Debugf("obj: %+v", obj)
-
-	r, err := client.Resource(schema.GroupVersionResource{
+var (
+	prGVR = schema.GroupVersionResource{
 		Group:    "tekton.dev",
 		Version:  "v1beta1",
 		Resource: "pipelineruns",
-	}).Namespace(obj.GetNamespace()).Create(context.Background(), obj, metav1.CreateOptions{})
+	}
+)
+
+func createPipelineRun(client dynamic.Interface, obj *unstructured.Unstructured, timeRange int) error {
+	log.Debugf("obj: %+v", obj)
+
+	var err error
+
+	exists, err := checkExistsPipelineRun(client, obj, timeRange)
+	if err != nil {
+		return errors2.WithStack(err)
+	}
+	if exists {
+		return nil
+	}
+
+	r, err := client.Resource(prGVR).Namespace(obj.GetNamespace()).Create(context.Background(), obj, metav1.CreateOptions{})
 	if err != nil {
 		return errors2.WithStack(err)
 	}
 
 	log.Infof("PipelineRun created success, name: %s", r.GetName())
 	return nil
+}
+
+func checkExistsPipelineRun(client dynamic.Interface, obj *unstructured.Unstructured, timeRange int) (bool, error) {
+	r, err := client.Resource(prGVR).Namespace(obj.GetNamespace()).List(context.Background(), metav1.ListOptions{
+		LabelSelector: labels.FormatLabels(obj.GetLabels()),
+	})
+	if err != nil {
+		return false, errors2.WithStack(err)
+	}
+
+	if len(r.Items) == 0 {
+		return false, nil
+	}
+
+	if r.Items[0].GetCreationTimestamp().After(time.Now().Add(-time.Duration(timeRange) * time.Second)) {
+		// create recently
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func yamlToUnstructured(y []byte) (*unstructured.Unstructured, error) {
+	m := make(map[string]interface{})
+	err := yaml.Unmarshal(y, &m)
+	if err != nil {
+		return nil, errors2.WithStack(err)
+	}
+
+	return &unstructured.Unstructured{
+		Object: m,
+	}, nil
+}
+
+func kConfigOrDie(inCluster bool) *rest.Config {
+	var config *rest.Config
+	var err error
+	if inCluster {
+		config, err = rest.InClusterConfig()
+
+	} else {
+		config, err = clientcmd.BuildConfigFromFlags("", os.Getenv(clientcmd.RecommendedConfigPathEnvVar))
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return config
 }
