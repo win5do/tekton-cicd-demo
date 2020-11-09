@@ -206,5 +206,15 @@ git commit -a -m "build commit" --allow-empty && git push
 #### build-image 卡主
 build-image 使用 kaniko，不依赖 docker daemon，所以 Dockerfile 中如果使用 golang:1.14 等体积很大的 dockerhub 镜像，因网络问题下载很慢甚至失败，会导致 build 超时，最好将镜像同步至内网。
 
+#### git clone auth err
+检查  secret `git-auth` 是否配置正确。
+
+#### push image auth err
+检查  secret `docker-auth` 是否配置正确。
+
+#### run on openshift
+部分任务配置了 `securityContext.runAsUser: 0`，在 openshift 运行需要配置 `scc=anyuid`。 参考：
+https://docs.openshift.com/container-platform/4.6/authentication/managing-security-context-constraints.html
+
 ### TODO
-- 中途失败无法通知
+- pipeline 中途失败无法发送机器人通知
