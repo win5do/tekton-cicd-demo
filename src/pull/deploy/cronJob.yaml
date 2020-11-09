@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: tekton-poll-pull
 spec:
-  schedule: "*/3 * * * *"
+  schedule: "*/1 * * * *"
   jobTemplate:
     spec:
       template:

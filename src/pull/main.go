@@ -36,6 +36,8 @@ var (
 
 const (
 	allBranch = "*"
+
+	REPO = "REPO"
 )
 
 func main() {
@@ -84,7 +86,7 @@ func run() error {
 	log.Infof("newest commit: %s", commit)
 
 	pr, err := applyTemplate(tpl, map[string]string{
-		"REPO":      flagRepo,
+		REPO:        flagRepo,
 		"SHA":       commit.Hash.String(),
 		"SHORT_SHA": commit.Hash.String()[:7],
 	})
@@ -190,6 +192,7 @@ func applyTemplate(t *template.Template, params map[string]string) (*unstructure
 		return nil, errors2.WithStack(err)
 	}
 
+	delete(params, REPO) // url is invalid label value
 	obj.SetLabels(labels.Merge(obj.GetLabels(), params))
 
 	return obj, nil
