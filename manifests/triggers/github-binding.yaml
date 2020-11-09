@@ -1,0 +1,26 @@
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: github-push
+spec:
+  params:
+    - name: REPO
+      value: $(body.repository.clone_url)
+    - name: REVERSION
+      value: $(body.ref)
+    - name: COMMIT
+      value: $(body.extensions.truncated_sha)
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: github-merge
+spec:
+  params:
+    - name: REPO
+      value: $(body.repository.clone_url)
+    - name: REVERSION
+      value: $(body.pull_request.base.ref)
+    - name: COMMIT
+      value: $(body.extensions.truncated_sha)

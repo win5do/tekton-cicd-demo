@@ -1,0 +1,59 @@
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: git-cicd
+spec:
+  params:
+    - name: REPO
+    - name: REVERSION
+    - name: COMMIT
+    - name: REGISTRY
+    - name: NAMESPACE
+    - name: NAME
+    - name: CONTAINER
+    - name: CLUSTER
+    - name: DOCKERFILE
+    - name: CONTEXT
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: git-cicd-
+      spec:
+        serviceAccountName: tekton-task
+        pipelineRef:
+          name: git-cicd
+        podTemplate:
+          securityContext:
+            runAsUser: 0
+        resources:
+          - name: cluster
+            resourceRef:
+              name: $(tt.params.CLUSTER)
+        workspaces:
+          - name: shared-data
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 1Gi
+        params:
+          - name: REPO
+            value: $(tt.params.REPO)
+          - name: REVERSION
+            value: $(tt.params.REVERSION)
+          - name: IMAGE
+            value: $(tt.params.REGISTRY)/$(tt.params.NAME):$(tt.params.COMMIT)
+          - name: NAMESPACE
+            value: $(tt.params.NAMESPACE)
+          - name: NAME
+            value: $(tt.params.NAME)
+          - name: CONTAINER
+            value: $(tt.params.CONTAINER)
+          - name: DOCKERFILE
+            value: $(tt.params.DOCKERFILE)
+          - name: CONTEXT
+            value: $(tt.params.CONTEXT)

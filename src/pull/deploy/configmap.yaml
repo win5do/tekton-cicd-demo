@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pr-tpl
+data:
+  pipelineRunTemplate: |
+    apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: git-cicd-
+      namespace: tekton-pipelines
+      labels:
+        name: poll-pull
+    spec:
+      serviceAccountName: tekton-task
+      pipelineRef:
+        name: git-cicd
+      podTemplate:
+        securityContext:
+          runAsUser: 0
+      resources:
+        - name: cluster
+          resourceRef:
+            name: kind
+      workspaces:
+        - name: shared-data
+          volumeClaimTemplate:
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 1Gi
+      params:
+        - name: REPO
+          value: {{ index . "REPO" }}
+        - name: REVERSION
+          value: {{ index . "SHA" }}
+        - name: IMAGE
+          value: registry.cn-huhehaote.aliyuncs.com/feng-566/go-echo:{{ index . "SHORT_SHA" }}
+        - name: NAMESPACE
+          value: tekton-pipelines
+        - name: NAME
+          value: go-echo
+        - name: CONTAINER
+          value: go-echo
+        - name: DOCKERFILE
+          value: ./demo/go-echo/Dockerfile
+        - name: CONTEXT
+          value: ./demo/go-echo

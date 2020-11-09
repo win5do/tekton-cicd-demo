@@ -1,0 +1,49 @@
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: demo-listener
+spec:
+  serviceAccountName: tekton-triggers-el
+  serviceType: NodePort
+  triggers:
+    - name: print
+      bindings:
+        - ref: print
+      template:
+        name: print
+    - name: github-push
+      interceptors:
+        - github:
+            secretRef:
+              secretName: git-webhook-token
+              secretKey: token
+            eventTypes:
+              - push
+        - cel:
+            overlays:
+              - key: extensions.truncated_sha
+                expression: "body.head_commit.id.truncate(7)"
+      bindings:
+        - ref: github-push
+        - ref: go-echo-binding
+      template:
+        name: git-cicd
+    - name: github-merge
+      interceptors:
+        - github:
+            secretRef:
+              secretName: git-webhook-token
+              secretKey: token
+            eventTypes:
+              - pull_request
+        - cel:
+            filter: "body.pull_request.merged == true"
+            overlays:
+              - key: extensions.truncated_sha
+                expression: "body.pull_request.merge_commit_sha.truncate(7)"
+      bindings:
+        - ref: github-merge
+        - ref: go-echo-binding
+      template:
+        name: git-cicd

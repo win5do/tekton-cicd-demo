@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tekton-poll-pull
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tekton-poll-pull
+rules:
+  - apiGroups: [""]
+    # secrets are only needed for Github/Gitlab interceptors
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+  # Permissions to create resources in associated TriggerTemplates
+  - apiGroups: ["tekton.dev"]
+    resources: ["pipelineruns", "pipelineresources", "taskruns"]
+    verbs: ["create", "get", "list"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tekton-poll-pull
+subjects:
+  - kind: ServiceAccount
+    name: tekton-poll-pull
+roleRef:
+  kind: Role
+  name: tekton-poll-pull
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,21 @@
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: go-echo-binding
+spec:
+  params:
+    - name: REGISTRY
+      value: registry.cn-huhehaote.aliyuncs.com/feng-566
+    - name: NAMESPACE
+      value: tekton-pipelines
+    - name: NAME
+      value: go-echo
+    - name: CONTAINER
+      value: go-echo
+    - name: CLUSTER
+      value: kind
+    - name: DOCKERFILE
+      value: ./demo/go-echo/Dockerfile
+    - name: CONTEXT
+      value: ./demo/go-echo

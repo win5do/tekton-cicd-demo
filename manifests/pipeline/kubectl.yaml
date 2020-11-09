@@ -1,0 +1,46 @@
+# ref: https://github.com/tektoncd/catalog/blob/7b4979323863bbfe6bf1679020c85c631528fb14/task/openshift-client-kubecfg/0.1/openshift-client-kubecfg.yaml#L1
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: kubectl
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/tags: cli
+    tekton.dev/displayName: "kubectl"
+spec:
+  description: >-
+    kubectl
+  resources:
+    inputs:
+      - name: cluster
+        type: cluster
+  params:
+    - name: NAMESPACE
+    - name: KIND # deployment / statefulset
+      default: deployment
+    - name: NAME
+    - name: CONTAINER
+      default: '*'
+    - name: IMAGE
+  results:
+    - name: msg
+      description: The result of command.
+  steps:
+    - name: kubectl
+      image: bitnami/kubectl:1.18
+      script: |
+        #!/usr/bin/env bash
+        export KUBECONFIG="/workspace/$(resources.inputs.cluster.name)/kubeconfig"
+
+        kubectl -n $(params.NAMESPACE) set image $(params.KIND)/$(params.NAME) '$(params.CONTAINER)=$(params.IMAGE)'
+        kubectl -n $(params.NAMESPACE) rollout restart $(params.KIND)/$(params.NAME)
+        timeout 300 kubectl -n $(params.NAMESPACE) rollout status $(params.KIND)/$(params.NAME)
+
+        if [[ $? == 0 ]]; then
+          RESULT=SUCCESS
+        else
+          RESULT=FAILED
+        fi
+        echo "EXEC [ kubectl -n $(params.NAMESPACE) set image $(params.KIND)/$(params.NAME) '$(params.CONTAINER)=$(params.IMAGE)' ] ===> ${RESULT}" | tee $(results.msg.path)

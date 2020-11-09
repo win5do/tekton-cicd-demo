@@ -1,0 +1,35 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: notify
+spec:
+  params:
+    - name: BOT_WEBHOOK
+      type: string
+      # edit
+      default: "https://oapi.dingtalk.com/robot/send?access_token=4886c4e680073688ae1e2e247743c54a00c33bbf846f06c2cbc276eb91bc48d0"
+    - name: MSG
+      type: string
+      default: "tekton pipeline success"
+    - name: HTTPS_PROXY
+      type: string
+      default: ""
+  steps:
+    - name: notify
+      image: curlimages/curl:7.70.0
+      script: |
+        #/usr/bin/env bash
+        if [[ $(params.HTTPS_PROXY) ]]; then
+          export HTTPS_PROXY=$(params.HTTPS_PROXY)
+        fi
+
+        curl "$(params.BOT_WEBHOOK)" \
+           -H 'Content-Type: application/json' \
+           -d '
+             {
+                "msgtype": "text",
+                "text": {
+                  "content": "CICD $(params.MSG)"
+                }
+             }
+           '

@@ -1,0 +1,41 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: demo
+spec:
+  serviceAccountName: tekton-task
+  pipelineRef:
+    name: git-cicd
+  podTemplate:
+    securityContext:
+      runAsUser: 0
+  resources:
+    - name: cluster
+      resourceRef:
+        name: kind
+  workspaces:
+    - name: shared-data
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+  params:
+    - name: REPO
+      value: https://github.com/win5do/tekton-cicd-sample.git
+    - name: REVERSION
+      value: master
+    - name: IMAGE
+      value: registry.cn-huhehaote.aliyuncs.com/feng-566/go-echo:tekton
+    - name: NAMESPACE
+      value: tekton-pipelines
+    - name: NAME
+      value: go-echo
+    - name: CONTAINER
+      value: go-echo
+    - name: DOCKERFILE
+      value: ./demo/go-echo/Dockerfile
+    - name: CONTEXT
+      value: ./demo/go-echo

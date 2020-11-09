@@ -1,0 +1,32 @@
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: print
+spec:
+  params:
+    - name: body
+      value: $(body)
+    - name: header
+      value: $(header)
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: print
+spec:
+  params:
+    - name: header
+    - name: body
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: TaskRun
+      metadata:
+        name: print-$(uid)
+      spec:
+        taskSpec:
+          steps:
+            - image: curlimages/curl:7.70.0
+              script: |
+                echo $(tt.params.header)
+                echo $(tt.params.body)

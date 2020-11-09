@@ -1,0 +1,76 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: git-cicd
+spec:
+  params:
+    - name: REPO
+    - name: REVERSION
+    - name: IMAGE
+    - name: NAMESPACE
+    - name: NAME
+    - name: CONTAINER
+    - name: DOCKERFILE
+      description: Path to the Dockerfile to build.
+      default: ./Dockerfile
+    - name: CONTEXT
+      description: The build context used by Kaniko.
+      default: ./
+  workspaces:
+    - name: shared-data
+  resources:
+    - name: cluster
+      type: cluster
+  tasks:
+    - name: git-clone
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-data
+      params:
+        - name: url
+          value: $(params.REPO)
+        - name: revision
+          value: $(params.REVERSION)
+        - name: sslVerify
+          value: "false"
+    - name: build-image
+      runAfter:
+        - git-clone
+      taskRef:
+        name: kaniko
+      workspaces:
+        - name: source
+          workspace: shared-data
+      params:
+        - name: DOCKERFILE
+          value: $(params.DOCKERFILE)
+        - name: CONTEXT
+          value: $(params.CONTEXT)
+        - name: IMAGE
+          value: $(params.IMAGE)
+    - name: kubectl
+      runAfter:
+        - build-image
+      taskRef:
+        name: kubectl
+      resources:
+        inputs:
+          - name: cluster
+            resource: cluster
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE)
+        - name: NAMESPACE
+          value: $(params.NAMESPACE)
+        - name: NAME
+          value: $(params.NAME)
+        - name: CONTAINER
+          value: $(params.CONTAINER)
+    - name: notify
+      taskRef:
+        Name: notify
+      params:
+        - name: MSG
+          value: $(tasks.kubectl.results.msg)

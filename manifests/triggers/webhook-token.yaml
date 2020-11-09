@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: git-webhook-token
+type: Opaque
+stringData:
+  token: m7iqx9g6dswrtjvk
