@@ -38,6 +38,7 @@ const (
 	allBranch = "*"
 
 	REPO = "REPO"
+	SHA  = "SHA"
 )
 
 func main() {
@@ -87,7 +88,7 @@ func run() error {
 
 	pr, err := applyTemplate(tpl, map[string]string{
 		REPO:        flagRepo,
-		"SHA":       commit.Hash.String(),
+		SHA:         commit.Hash.String(),
 		"SHORT_SHA": commit.Hash.String()[:7],
 	})
 	if err != nil {
@@ -216,6 +217,7 @@ func createPipelineRun(client dynamic.Interface, obj *unstructured.Unstructured,
 		return errors2.WithStack(err)
 	}
 	if exists {
+		log.Infof("PipelineRun has recently been created, commit: ", obj.GetLabels()[SHA])
 		return nil
 	}
 
