@@ -25,8 +25,9 @@ Jenkins 虽然可以将 Jenkinsfile 脚本集中管理，但针对每个项目�
 - k8s server version >= v1.15
 - 以下命令中 `alias kc=kubectl`
 - 以下步骤在 macOS 10.15 上测试通过，一些命令在 Windows 上可能没有。
-- registry.cn-huhehaote.aliyuncs.com/feng-566/ 旗下镜像均可公开访问，但是推送镜像需要登录。所以需要准备一个镜像仓库用于推送制品镜像。阿里云镜像仓库注册账号即可免费使用。
-- 接收 github webhook 需要准备拥有公网 IP 的服务器。如果没有，可使用 pull 模式替代。
+- registry.cn-huhehaote.aliyuncs.com/feng-566/ 旗下镜像均可公开访问，但是推送镜像需要认证。所以需要一个镜像仓库用于推送制品镜像，推荐阿里云镜像仓库注册账号即可免费使用。
+- 接收 github webhook 需要一个拥有公网 IP 的服务器。如果没有，可使用 pull 模式替代。
+- 出现问题请先查看[问题排查](#问题排查)
 
 ### 创建 kind 本地集群
 
@@ -189,9 +190,9 @@ Tekton 官方并没有提供类似 Jenkins 那种轮询 pull 检测 git repo，�
 kc apply -f ./src/pull/deploy
 ```
 
-部署成功后参考 `测试 CICD` 中步骤进行测试。
+部署成功后参考 [测试 CICD](#测试-CICD) 中步骤进行测试。
 
-###  测试 CICD
+### 测试 CICD
 
 提交 commit 进行测试：
 ```sh
@@ -200,10 +201,10 @@ git commit -a -m "build commit" --allow-empty && git push
 
 ## 后记
 
-### TODO
-- 中途失败无法通知
-
 ### 问题排查
 
 #### build-image 卡主
 build-image 使用 kaniko，不依赖 docker daemon，所以 Dockerfile 中如果使用 golang:1.14 等体积很大的 dockerhub 镜像，因网络问题下载很慢甚至失败，会导致 build 超时，最好将镜像同步至内网。
+
+### TODO
+- 中途失败无法通知
