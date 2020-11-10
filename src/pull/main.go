@@ -86,10 +86,20 @@ func run() error {
 
 	log.Infof("newest commit: %s", commit)
 
+	sha := commit.Hash.String()
+	var reversion string
+
+	if flagBranch != allBranch {
+		reversion = flagBranch
+	} else {
+		reversion = sha
+	}
+
 	pr, err := applyTemplate(tpl, map[string]string{
 		REPO:        flagRepo,
-		SHA:         commit.Hash.String(),
-		"SHORT_SHA": commit.Hash.String()[:7],
+		"REVERSION": reversion,
+		SHA:         sha,
+		"SHORT_SHA": sha[:7],
 	})
 	if err != nil {
 		return errors2.WithStack(err)
@@ -217,7 +227,7 @@ func createPipelineRun(client dynamic.Interface, obj *unstructured.Unstructured,
 		return errors2.WithStack(err)
 	}
 	if exists {
-		log.Infof("PipelineRun has recently been created, commit: ", obj.GetLabels()[SHA])
+		log.Infof("PipelineRun has recently been created, commit: %s", obj.GetLabels()[SHA])
 		return nil
 	}
 

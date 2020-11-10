@@ -16,10 +16,10 @@ func init() {
 func TestGitNewestCommit(t *testing.T) {
 	commit, err := gitNewestCommit(
 		"https://github.com/win5do/tekton-cicd-demo.git",
-		"xxx",
-		"xxx",
+		"",
+		"",
 		"*",
-		3000,
+		10*60,
 	)
 	require.NoError(t, err)
 	if commit != nil {

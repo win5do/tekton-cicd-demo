@@ -35,7 +35,7 @@ data:
         - name: REPO
           value: {{ index . "REPO" }}
         - name: REVERSION
-          value: {{ index . "SHA" }}
+          value: {{ index . "REVERSION" }}
         - name: IMAGE
           value: registry.cn-huhehaote.aliyuncs.com/feng-566/go-echo:{{ index . "SHORT_SHA" }}
         - name: NAMESPACE
