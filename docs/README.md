@@ -24,6 +24,7 @@ Jenkins 虽然可以将 Jenkinsfile 脚本集中管理，但针对每个项目�
 - 完成以下步骤需要 k8s 基础使用能力
 - k8s server version >= v1.15
 - 以下命令中 `alias kc=kubectl`
+- Tekton 的一些概念和资源在此不再赘述，请查阅官方文档：https://tekton.dev/docs/pipelines/
 - 以下步骤在 macOS 10.15 上测试通过，一些命令在 Windows 上可能没有。
 - registry.cn-huhehaote.aliyuncs.com/feng-566/ 旗下镜像均可公开访问，但是推送镜像需要认证。所以需要一个镜像仓库用于推送制品镜像，推荐阿里云镜像仓库注册账号即可免费使用。
 - 接收 github webhook 需要一个拥有公网 IP 的服务器。如果没有，可使用 pull 模式替代。
