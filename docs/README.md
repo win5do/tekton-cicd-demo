@@ -220,7 +220,7 @@ build-image 使用 kaniko，不依赖 docker daemon，所以 Dockerfile 中如�
 检查  secret `git-auth` 是否配置正确。
 
 #### push image auth err
-检查  secret `docker-auth` 是否配置正确。
+检查  secret `docker-auth` 是否配置正确。pipeline 中推送镜像地址是否改为你个人镜像仓库地址。
 
 #### run on openshift
 部分任务配置了 `securityContext.runAsUser: 0`，在 openshift 运行需要配置 `scc=anyuid`。 参考：
