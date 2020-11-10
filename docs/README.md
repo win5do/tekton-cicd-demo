@@ -61,6 +61,11 @@ make sync
 kc apply -f ./src/sync/dst
 ```
 
+check：
+```sh
+kc get po
+```
+
 #### 部署 demo app
 
 测试 demo，用于后面流水线滚动更新。
@@ -109,6 +114,11 @@ kc apply -f ./manifests/resource
 
 ```sh
 kc apply -f ./manifests/test/pipeline-run-demo.yaml
+```
+
+check：
+```sh
+kc get pr
 ```
 
 #### Tekton dashboard
