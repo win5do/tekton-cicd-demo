@@ -49,7 +49,7 @@ kind create cluster --config ./kind-config.yaml
 ### 安装 Tekton
 
 #### 同步镜像
-由于 Tekton 镜像都是在 gcr.io 上，需要 VPN 才能拉取，所以第一步需要将镜像同步至国内。这里我写了脚本（./script/sync.go）将镜像都同步至阿里云镜像仓库，并设为公开访问，如无必要可跳过此步。
+由于 Tekton 镜像都是在 gcr.io 上，需要 VPN 才能拉取，所以第一步需要将镜像同步至国内。这里我写了脚本（./src/sync/main.go）将镜像都同步至阿里云镜像仓库，并设为公开访问，如无必要可跳过此步。
 
 ```sh
 make sync
