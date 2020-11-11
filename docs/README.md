@@ -87,7 +87,7 @@ kc apply -f ./demo/go-echo/deploy/deploy.yaml
 
 
 #### 配置目标集群 kubeconfig
-`./manifests/resource/cluster-kind.yaml` 配置部署时 kubectl 使用的配置*。
+`./manifests/resource/cluster-kind.yaml` 配置部署时 kubectl 使用的配置。
 
 将其修改为你本地 kind 集群的 kubeconfig。
 
@@ -141,7 +141,7 @@ open http://localhost:9097/#/namespaces/tekton-pipelines/pipelineruns
 
 前面的步骤中，我们用手动的方式执行了 pipeline，下面我们配置 Tekton triggers，通过 webhok 的方式自动执行。
 
-[Tekton trigger](https://github.com/tektoncd/triggers)  组件是用来接收 webhook，做一些 校验，过滤，参数绑定等前处理，然后帮你自动创建 PipelineRun 等资源执行流水线。
+[Tekton trigger](https://github.com/tektoncd/triggers)  组件是用来接收 webhook，做一些校验，过滤，参数绑定等前处理，然后帮你自动创建 PipelineRun 等资源执行流水线。
 
 ```sh
 kc apply -f ./manifests/triggers
@@ -215,7 +215,7 @@ git commit -a -m "build commit" --allow-empty && git push
 ### 问题排查
 
 #### build-image 卡主
-build-image 使用 kaniko，不依赖 docker daemon，所以 Dockerfile 中如果使用 golang:1.14 等体积很大的 dockerhub 镜像，因网络问题下载很慢甚至失败，会导致 build 超时，最好将镜像同步至内网。
+build-image 使用 kaniko 在容器中构建，不依赖 docker daemon，镜像每次都会重新下载，所以 Dockerfile 中如果使用 golang:1.14 等体积很大的 dockerhub 镜像，因网络问题下载很慢甚至失败，会导致 build 超时，最好将镜像同步至内网。
 
 #### git clone auth err
 检查  secret `git-auth` 是否配置正确。
