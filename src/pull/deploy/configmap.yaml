@@ -8,7 +8,6 @@ data:
     kind: PipelineRun
     metadata:
       generateName: git-cicd-
-      namespace: tekton-pipelines
       labels:
         name: poll-pull
     spec:

@@ -21,6 +21,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"sigs.k8s.io/yaml"
+	"strings"
 	"text/template"
 	"time"
 )
@@ -220,6 +221,12 @@ var (
 func createPipelineRun(client dynamic.Interface, obj *unstructured.Unstructured, timeRange int) error {
 	log.Debugf("obj: %+v", obj)
 
+	if obj.GetNamespace() == "" {
+		namespace := inClusterNamespace()
+		log.Debug("inCluster namespace: %s", namespace)
+		obj.SetNamespace(namespace)
+	}
+
 	var err error
 
 	exists, err := checkExistsPipelineRun(client, obj, timeRange)
@@ -238,6 +245,16 @@ func createPipelineRun(client dynamic.Interface, obj *unstructured.Unstructured,
 
 	log.Infof("PipelineRun created success, name: %s", r.GetName())
 	return nil
+}
+
+func inClusterNamespace() string {
+	if data, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace"); err == nil {
+		if ns := strings.TrimSpace(string(data)); len(ns) > 0 {
+			return ns
+		}
+	}
+
+	return ""
 }
 
 func checkExistsPipelineRun(client dynamic.Interface, obj *unstructured.Unstructured, timeRange int) (bool, error) {
