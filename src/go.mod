@@ -1,11 +1,9 @@
-module pull
+module tekton/utils
 
-go 1.14
+go 1.15
 
 require (
 	github.com/go-git/go-git/v5 v5.2.0
-	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/googleapis/gnostic v0.5.3 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.1

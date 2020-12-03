@@ -9,7 +9,7 @@ data:
     metadata:
       generateName: git-cicd-
       labels:
-        name: poll-pull
+        name: git-polling
     spec:
       serviceAccountName: tekton-task
       pipelineRef:

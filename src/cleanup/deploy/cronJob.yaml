@@ -1,0 +1,19 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: tekton-cleanup
+spec:
+  schedule: "* 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: tekton-utils
+          containers:
+            - name: poll
+              image: registry.cn-huhehaote.aliyuncs.com/feng-566/tekton-cleanup:v0.0.1
+              imagePullPolicy: IfNotPresent
+              args:
+                - --range=300
+                - --excluded-selector=type=origin

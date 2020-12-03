@@ -3,7 +3,7 @@ kind: PipelineRun
 metadata:
   name: demo
   labels:
-    name: poll-pull
+    name: git-polling
 spec:
   serviceAccountName: tekton-task
   pipelineRef:

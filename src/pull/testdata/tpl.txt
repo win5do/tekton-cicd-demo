@@ -2,9 +2,6 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   generateName: git-cicd-
-  namespace: tekton-pipelines
-  labels:
-    name: git-pull
 spec:
   serviceAccountName: tekton-task
   pipelineRef:

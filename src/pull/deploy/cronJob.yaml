@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: tekton-poll-pull
+  name: tekton-git-polling
 spec:
   schedule: "*/1 * * * *"
   jobTemplate:
@@ -9,10 +9,10 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
-          serviceAccountName: tekton-poll-pull
+          serviceAccountName: tekton-utils
           containers:
-            - name: poll
-              image: registry.cn-huhehaote.aliyuncs.com/feng-566/git-poll:v0.0.1
+            - name: polling
+              image: registry.cn-huhehaote.aliyuncs.com/feng-566/tekton-git-polling:v0.0.1
               imagePullPolicy: IfNotPresent
               args:
                 - --repo=https://github.com/win5do/tekton-cicd-demo.git

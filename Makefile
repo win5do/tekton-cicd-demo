@@ -3,9 +3,15 @@
 sync:
 	cd src/sync && go run . --sync=true
 
-IMG := registry.cn-huhehaote.aliyuncs.com/feng-566/git-poll:v0.0.1
+IMG_PULL := registry.cn-huhehaote.aliyuncs.com/feng-566/tekton-git-polling:v0.0.1
+IMG_CLEANUP := registry.cn-huhehaote.aliyuncs.com/feng-566/tekton-cleanup:v0.0.1
 
 build-pull:
-	cd src/pull && \
-    docker build -t $(IMG) . && \
-	docker push $(IMG)
+	cd src && \
+    docker build -t $(IMG_PULL) -f pull.Dockerfile . && \
+	docker push $(IMG_PULL)
+
+build-cleanup:
+	cd src && \
+    docker build -t $(IMG_CLEANUP) -f cleanup.Dockerfile . && \
+	docker push $(IMG_CLEANUP)

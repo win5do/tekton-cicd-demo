@@ -6,6 +6,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"strings"
+	"tekton/utils/common"
 	"testing"
 )
 
@@ -46,16 +47,16 @@ metadata:
   generateName: git-cicd-
   namespace: tekton-pipelines
   labels:
-    name: poll-pull
+    name: git-polling
 spec: {}
 `
 
 	obj, err := yamlToUnstructured([]byte(pr))
 	require.NoError(t, err)
 
-	config := kConfigOrDie(false)
+	config := common.KConfigOrDie(false)
 	config.Impersonate = rest.ImpersonationConfig{
-		UserName: "system:serviceaccount:tekton-pipelines:tekton-poll-pull",
+		UserName: "system:serviceaccount:tekton-pipelines:tekton-utils",
 	}
 
 	err = createPipelineRun(dynamic.NewForConfigOrDie(config), obj, 300)
@@ -74,14 +75,14 @@ metadata:
   generateName: git-cicd-
   namespace: tekton-pipelines
   labels:
-    name: poll-pull
+    name: git-polling
 spec: {}
 `
 
 	obj, err := yamlToUnstructured([]byte(pr))
 	require.NoError(t, err)
 
-	config := kConfigOrDie(false)
+	config := common.KConfigOrDie(false)
 
 	_, err = checkExistsPipelineRun(dynamic.NewForConfigOrDie(config), obj, 300)
 	require.NoError(t, err)

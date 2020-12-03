@@ -15,15 +15,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"sigs.k8s.io/yaml"
-	"strings"
 	"text/template"
 	"time"
+
+	"tekton/utils/common"
 )
 
 var (
@@ -106,7 +104,7 @@ func run() error {
 		return errors2.WithStack(err)
 	}
 
-	err = createPipelineRun(dynamic.NewForConfigOrDie(kConfigOrDie(true)), pr, flagRange)
+	err = createPipelineRun(dynamic.NewForConfigOrDie(common.KConfigOrDie(true)), pr, flagRange)
 	if err != nil {
 		return errors2.WithStack(err)
 	}
@@ -210,19 +208,11 @@ func applyTemplate(t *template.Template, params map[string]string) (*unstructure
 	return obj, nil
 }
 
-var (
-	prGVR = schema.GroupVersionResource{
-		Group:    "tekton.dev",
-		Version:  "v1beta1",
-		Resource: "pipelineruns",
-	}
-)
-
 func createPipelineRun(client dynamic.Interface, obj *unstructured.Unstructured, timeRange int) error {
 	log.Debugf("obj: %+v", obj)
 
 	if obj.GetNamespace() == "" {
-		namespace := inClusterNamespace()
+		namespace := common.InClusterNamespace()
 		log.Debug("inCluster namespace: %s", namespace)
 		obj.SetNamespace(namespace)
 	}
@@ -238,7 +228,7 @@ func createPipelineRun(client dynamic.Interface, obj *unstructured.Unstructured,
 		return nil
 	}
 
-	r, err := client.Resource(prGVR).Namespace(obj.GetNamespace()).Create(context.Background(), obj, metav1.CreateOptions{})
+	r, err := client.Resource(common.PrGVR).Namespace(obj.GetNamespace()).Create(context.Background(), obj, metav1.CreateOptions{})
 	if err != nil {
 		return errors2.WithStack(err)
 	}
@@ -247,18 +237,8 @@ func createPipelineRun(client dynamic.Interface, obj *unstructured.Unstructured,
 	return nil
 }
 
-func inClusterNamespace() string {
-	if data, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace"); err == nil {
-		if ns := strings.TrimSpace(string(data)); len(ns) > 0 {
-			return ns
-		}
-	}
-
-	return ""
-}
-
 func checkExistsPipelineRun(client dynamic.Interface, obj *unstructured.Unstructured, timeRange int) (bool, error) {
-	r, err := client.Resource(prGVR).Namespace(obj.GetNamespace()).List(context.Background(), metav1.ListOptions{
+	r, err := client.Resource(common.PrGVR).Namespace(obj.GetNamespace()).List(context.Background(), metav1.ListOptions{
 		LabelSelector: labels.FormatLabels(obj.GetLabels()),
 	})
 	if err != nil {
@@ -287,20 +267,4 @@ func yamlToUnstructured(y []byte) (*unstructured.Unstructured, error) {
 	return &unstructured.Unstructured{
 		Object: m,
 	}, nil
-}
-
-func kConfigOrDie(inCluster bool) *rest.Config {
-	var config *rest.Config
-	var err error
-	if inCluster {
-		config, err = rest.InClusterConfig()
-
-	} else {
-		config, err = clientcmd.BuildConfigFromFlags("", os.Getenv(clientcmd.RecommendedConfigPathEnvVar))
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return config
 }
