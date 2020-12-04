@@ -17,8 +17,6 @@ Jenkins 虽然可以将 Jenkinsfile 脚本集中管理，但针对每个项目�
 
 而 Tekton 所有配置都是以 k8s 式 Yaml 文件形式存在，即使换了一个集群，只需要应用 Yaml 配置即可无缝迁移。
 
-## 执行步骤
-
 ### 阅读须知
 
 - 完成以下步骤需要 k8s 基础使用能力
@@ -29,6 +27,8 @@ Jenkins 虽然可以将 Jenkinsfile 脚本集中管理，但针对每个项目�
 - registry.cn-huhehaote.aliyuncs.com/feng-566/ 旗下镜像均可公开访问，但是推送镜像需要认证。所以需要一个镜像仓库用于推送制品镜像，推荐阿里云镜像仓库注册账号即可免费使用。
 - 接收 github webhook 需要一个拥有公网 IP 的服务器。如果没有，可使用 pull 模式替代。
 - 出现问题请先查看 [问题排查](#问题排查)
+
+## 执行步骤
 
 ### 创建 kind 本地集群
 
@@ -186,11 +186,11 @@ kc logs -l eventlistener=demo-listener
 
 `./manifests/triggers/print.yaml` print task 将 webhook head 及 body 打印出来。
 
-### [Option 2： pull 模式] 配置 CronJob
+### [Option 2： pull 模式] 配置 Git polling CronJob
 
 Tekton 官方并没有提供类似 Jenkins 那种轮询 pull 检测 git repo，有新的 commit 则触发构建。理由是 pull 模式会对 git 造成较大压力。
 
-但借助 k8s CronJob，自己实现 pull 模式。`./src/pull` 我实现了一个简单的 pull 程序，定期检查对应仓库和分支有没有新的 commit，自动创建 PipelineRun。
+但借助 k8s CronJob，自己实现 pull 模式。`./src/pull` 中的代码实现了一个简单的 pull 程序，定期检查对应仓库和分支有没有新的 commit，自动创建 PipelineRun。
 
  `./src/pull/deploy/configmap.yaml` 为 PipelineRun 模板，修改 params 部分目标 IMAGE，NAME 等参数。
 
@@ -198,6 +198,7 @@ Tekton 官方并没有提供类似 Jenkins 那种轮询 pull 检测 git repo，�
 
 应用：
 ```sh
+kc apply -f ./src/common/rbac.yaml
 kc apply -f ./src/pull/deploy
 ```
 
@@ -211,6 +212,20 @@ git commit -a -m "build commit" --allow-empty && git push
 ```
 
 ## 后记
+### 定时清理老旧资源
+
+Tekton 中的 PipelineRun 资源执行完后并不会自动清理，这里我们使用 CronJob 配合  `./src/cleanup` 中的代码清理老旧资源。
+
+应用：
+```sh
+kc apply -f ./src/common/rbac.yaml
+kc apply -f ./src/cleanup/deploy
+```
+`schedule: "0 3 * * *"` 配置每天凌晨三点运行。
+
+`--range` 参数配置清理多久之前（秒）的创建资源，默认：三天前。
+
+`--excluded-selector` 参数配置需排除掉的 labelSelecor 。
 
 ### 问题排查
 

@@ -58,7 +58,9 @@ func main() {
 	rootCmd.Flags().StringVar(&flagUsername, "username", "", "git username")
 	rootCmd.Flags().StringVar(&flagPassword, "password", "", "git password")
 	rootCmd.Flags().StringVar(&flagBranch, "branch", allBranch, "fetch branch")
-	rootCmd.Flags().IntVar(&flagRange, "range", 120, "fetch time range, unit: seconds")
+	// 获取时间段最好比 cronJob 间隔长，防止因 pod 创建、初始化等原因导致的运行延迟，产生时间空挡，从而错过某些 commit
+	// checkExistsPipelineRun 通过判断 pr labels 中的 sha 判断是否存在，防止重复创建 pr
+	rootCmd.Flags().IntVar(&flagRange, "range", 120, "fetch time range from now, unit: seconds")
 	rootCmd.Flags().StringVar(&flagTemplate, "template", "", "PipelineRun template")
 
 	err := rootCmd.Execute()

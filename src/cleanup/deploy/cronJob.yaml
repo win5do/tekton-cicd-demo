@@ -3,7 +3,8 @@ kind: CronJob
 metadata:
   name: tekton-cleanup
 spec:
-  schedule: "* 0 * * *"
+  # Every day at 3 o 'clock
+  schedule: "0 3 * * *"
   jobTemplate:
     spec:
       template:
@@ -15,5 +16,5 @@ spec:
               image: registry.cn-huhehaote.aliyuncs.com/feng-566/tekton-cleanup:v0.0.1
               imagePullPolicy: IfNotPresent
               args:
-                - --range=300
+                - --range=259200
                 - --excluded-selector=type=origin
