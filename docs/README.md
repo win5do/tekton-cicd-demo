@@ -2,7 +2,41 @@
 
 这是一个演示 Tekton CICD 的 demo。下面我们将从搭建本地 k8s 集群开始，同步镜像至国内并部署 Tekton，一步一步实现一个 CICD 流水线。实现更新代码自动触发流水线，构建镜像推送到目标仓库，并更新 deployment 镜像滚动更新应用，最后钉钉机器人通知到群聊。
 
-[TOC]
+Table of Contents
+=================
+
+* [Tekton CICD Demo](#tekton-cicd-demo)
+  * [前言](#前言)
+    * [阅读须知](#阅读须知)
+  * [执行步骤](#执行步骤)
+    * [创建 kind 本地集群](#创建-kind-本地集群)
+    * [安装 Tekton](#安装-tekton)
+      * [同步镜像](#同步镜像)
+      * [部署 Tekton](#部署-tekton)
+      * [部署 demo app](#部署-demo-app)
+    * [配置 pipeline](#配置-pipeline)
+      * [配置 github 和 镜像仓库 access token](#配置-github-和-镜像仓库-access-token)
+      * [配置目标集群 kubeconfig](#配置目标集群-kubeconfig)
+      * [配置机器人通知](#配置机器人通知)
+      * [应用 pipeline 配置](#应用-pipeline-配置)
+      * [test pipeline run](#test-pipeline-run)
+      * [Tekton dashboard](#tekton-dashboard)
+    * [[Option 1： push 模式] 配置 Tekton triggers](#option-1-push-模式-配置-tekton-triggers)
+      * [config webhook  in github repo](#config-webhook--in-github-repo)
+      * [利用 ssh 将 webhook 转发到本地](#利用-ssh-将-webhook-转发到本地)
+      * [debug webhook](#debug-webhook)
+    * [[Option 2： pull 模式] 配置 Git polling CronJob](#option-2-pull-模式-配置-git-polling-cronjob)
+    * [测试 CICD](#测试-cicd)
+  * [后记](#后记)
+    * [定时清理老旧资源](#定时清理老旧资源)
+    * [问题排查](#问题排查)
+      * [build\-image 卡主](#build-image-卡主)
+      * [git clone auth err](#git-clone-auth-err)
+      * [push image auth err](#push-image-auth-err)
+      * [run on openshift](#run-on-openshift)
+    * [TODO](#todo)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
 ## 前言
 
