@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"regexp"
 	"time"
 
 	errors2 "github.com/pkg/errors"
@@ -53,6 +54,12 @@ func run() error {
 	return cleanup(dynamic.NewForConfigOrDie(common.KConfigOrDie(true)), flagRange, set)
 }
 
+var rerunGenerateName = regexp.MustCompile(`.+-r-\w{5}$`)
+
+func matchRerunGenerateName(s string) bool {
+	return rerunGenerateName.MatchString(s)
+}
+
 func cleanup(client dynamic.Interface, timeRange int, excludedLabels labels.Set) error {
 	log.Debugf("excludedLabels: %+v", excludedLabels)
 
@@ -75,8 +82,11 @@ func cleanup(client dynamic.Interface, timeRange int, excludedLabels labels.Set)
 			continue
 		}
 
-		if labels.SelectorFromSet(excludedLabels).Matches(labels.Set(v.GetLabels())) {
-			continue
+		if !matchRerunGenerateName(v.GetName()) {
+			// if generate by rerun on dashboards, still cleanup
+			if labels.SelectorFromSet(excludedLabels).Matches(labels.Set(v.GetLabels())) {
+				continue
+			}
 		}
 
 		err := client.Resource(common.PrGVR).Namespace(namespace).Delete(context.Background(), v.GetName(), metav1.DeleteOptions{})

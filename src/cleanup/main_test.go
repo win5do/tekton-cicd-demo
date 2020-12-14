@@ -20,3 +20,17 @@ func TestLabelsMatch(t *testing.T) {
 	r := labels.SelectorFromSet(exclude).Matches(in)
 	require.True(t, r)
 }
+
+func TestMatchRerunGenerateName(t *testing.T) {
+	r := matchRerunGenerateName("foo-bar-r-dcfht")
+	require.True(t, r)
+
+	r = matchRerunGenerateName("foo-bar-6cfh0")
+	require.False(t, r)
+
+	r = matchRerunGenerateName("foo-bar-6cfht")
+	require.False(t, r)
+
+	r = matchRerunGenerateName("foo-r-bar")
+	require.False(t, r)
+}
